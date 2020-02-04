@@ -8,6 +8,7 @@ import getpass
 import os
 import re
 import time
+import io
 
 from six.moves.urllib.parse import unquote
 
@@ -121,6 +122,25 @@ def create_async_soda_job(authenticated_id_tokens, soda_url=None):
     resp = requests.post(async_url, params=id_params)
     return resp.url
 
+def sync_tap_query_xml(query_string, username=None, password=None, tap_url=None):
+    """
+    Run an adql (TAP) query, and return resulting VO Table (XML))
+    :param query_string: The ADQL query to be run
+    :param username: The OPAL username (if an authenticated query is required)
+    :param password: The OPAL password (if an authenticated query is required)
+    :param tap_url: The URL of the TAP service, if a custom address is needed.
+    :return: XML VO Table
+    """
+    authenticated = password is not None
+    sync_url = tap_url if tap_url else get_tap_sync_url(proxy=authenticated)
+
+    params = {'query': query_string, 'request': 'doQuery', 'lang': 'ADQL', 'format': 'votable'}
+    if authenticated:
+        response = requests.get(sync_url, params=params, auth=(username, password))
+    else:
+        response = requests.get(sync_url, params=params)
+    response.raise_for_status()
+    return io.BytesIO(response.content)
 
 def sync_tap_query(query_string, filename, username=None, password=None,
                    file_write_mode='wb', tap_url=None):
@@ -207,7 +227,7 @@ def retrieve_direct_data_link_to_file(dataproduct_id,
 
     # Save the data access vo table information to a file: eg C:/temp/datalink-cube-1234.xml
     data = response.content
-    filename = destination_dir + "/datalink-" + dataproduct_id + ".xml"
+    filename = destination_dir + "/datalink-" + dataproduct_id + ".xml" #todo: condition needs to be added if destination_dir=None
     with open(filename, file_write_mode) as f:
         f.write(data)
     return filename
@@ -290,12 +310,12 @@ def parse_datalink_for_service_and_id(filename, service_name):
     return async_url, authenticated_id_token
 
 
-def get_service_link_and_id(dataproduct_id,
-                            username, password,
-                            image_cube_datalink_link_url=None,
-                            destination_dir=None,
-                            file_write_mode='wb',
-                            service='cutout_service'):
+def get_service_link_and_id(dataproduct_id: object,
+                            username: object, password: object,
+                            image_cube_datalink_link_url: object = None,
+                            destination_dir: object = None,
+                            file_write_mode: object = 'wb',
+                            service: object = 'cutout_service') -> object:
     filename = retrieve_data_link_to_file(dataproduct_id,
                                           username,
                                           password,
@@ -320,7 +340,7 @@ def add_params_to_async_job(job_location, param_key, param_values, verbose=False
         if verbose:
             print(response.text)
     except IOError as e:
-        print("Unable to add %s parameters %s due to error %s" % (param_key, param_values, e))
+        print("Unable to add %s parameters %s due to error %s. Response: %s" % (param_key, param_values, e, response.text))
         raise
 
 
