@@ -481,13 +481,13 @@ def download_all(job_location, destination_dir=None, write_mode='wb'):
 
 
 def get_results_page(job_location):
-    print("Job location: %s", job_location)
+    print("Job location: ", job_location)
     job_id = list(filter(bool, job_location.split("/")))[-1]
     return _casda_soda_base_url + "requests/" + job_id
 
 
 def get_results_links(job_location):
-    print("Job location: %s", job_location)
+    print("Job location: ", job_location)
     job_id = list(filter(bool, job_location.split("/")))[-1]
     return _casda_soda_base_url + "download/" + job_id
 
