@@ -30,6 +30,7 @@ def parseargs():
     parser.add_argument("-c", "--conf_file", help="The configuration file holding parameters of partitioning")
     parser.add_argument("-f", "--cube_file_name", help="The image cube file name to be accessed in CASDA")
     parser.add_argument("-d", "--destination_dir", help="Local destination directory on processing node")
+    parser.add_argument("--download", help="Download all cutouts and checksums")
 
     args = parser.parse_args()
     return args
@@ -164,12 +165,15 @@ def main():
 
         # Run and time the job
         run_start = time.time()
+        print("\n Started running jobs: ", time.asctime(time.localtime(run_start)))
         status = casda.run_async_job(job_location)
         run_end = time.time()
+        print("\n Finished: ", time.asctime(time.localtime(run_end)))
         print('\nJob finished with status %s in %.02f seconds\n\n' % (status, run_end - run_start))
 
-        # Optionally download
         print ("Job result available at ", casda.get_results_links(job_location))
+
+        # Optionally download
         if args.download:
            casda.download_all(job_location, args.destination_directory)
     except IOError as e:
