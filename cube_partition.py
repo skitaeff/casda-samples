@@ -109,7 +109,7 @@ def generate_cutouts_array(config_file: str, cube_vo_table: object) -> object:
     range_params = []
     for i in range(0, RA_Partitions, 1):
         for j in range(0, Dec_Partitions, 1):
-            range_params.append("RANGE " + str(ra_min_list[i]) + " " + str(dec_min_list[j]) + " " + str(ra_max_list[i]) + " " + str(dec_max_list[j]))
+            range_params.append("RANGE " + str(ra_min_list[i]) + " " + str(ra_max_list[i]) + " "+ str(dec_min_list[j]) + " "  + str(dec_max_list[j]))
 
     fre_min_list = []
     fre_max_list = []
@@ -160,16 +160,16 @@ def main():
         job_location = casda.create_async_soda_job([authenticated_id_token], soda_url=async_url)
         casda.add_params_to_async_job(job_location, 'POS', range_params)
         casda.add_params_to_async_job(job_location, 'BAND', band_params)
-        print ('\n\n Job will have %d cutouts.\n\n' % (len(range_params)*len(band_params)))
+        print ('\n%d cutouts will be created' % (len(range_params)*len(band_params)))
 
         # Run and time the job
         run_start = time.time()
         status = casda.run_async_job(job_location)
         run_end = time.time()
-        print('Job finished with status %s in %.02f s\n\n' % (status, run_end - run_start))
+        print('\nJob finished with status %s in %.02f seconds\n\n' % (status, run_end - run_start))
 
         # Optionally download
-        print ("Job result available at ", casda.get_results_page(job_location))
+        print ("Job result available at ", casda.get_results_links(job_location))
         if args.download:
            casda.download_all(job_location, args.destination_directory)
     except IOError as e:
